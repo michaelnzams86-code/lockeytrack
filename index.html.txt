@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FinanceFlow Pro</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root { --glass: rgba(255, 255, 255, 0.2); --text: #2d3436; }
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh; margin: 0; padding: 20px; color: var(--text);
+            display: flex; flex-direction: column; align-items: center;
+        }
+        .container { 
+            background: var(--glass); backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.3); padding: 25px;
+            border-radius: 20px; width: 100%; max-width: 450px; box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        }
+        h2 { color: white; text-align: center; margin-top: 0; }
+        input, select { 
+            width: 100%; padding: 12px; margin: 8px 0; border-radius: 10px;
+            border: none; background: rgba(255,255,255,0.9); box-sizing: border-box;
+        }
+        button { 
+            width: 100%; padding: 14px; margin-top: 15px; border-radius: 10px; border: none;
+            background: #00b894; color: white; font-weight: 600; cursor: pointer; transition: 0.3s;
+        }
+        button:hover { background: #55efc4; transform: translateY(-2px); }
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin: 20px 0; }
+        .stat-card { background: white; padding: 10px; border-radius: 12px; text-align: center; font-size: 0.8rem; }
+        .stat-card strong { display: block; font-size: 1.1rem; color: #6c5ce7; }
+        #history { margin-top: 20px; max-height: 300px; overflow-y: auto; }
+        .item { background: white; padding: 12px; border-radius: 10px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+        .category-tag { font-size: 0.7rem; background: #dfe6e9; padding: 2px 6px; border-radius: 4px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>FinanceFlow</h2>
+    
+    <div class="stats-grid">
+        <div class="stat-card">Today<strong id="d-total">$0</strong></div>
+        <div class="stat-card">Week<strong id="w-total">$0</strong></div>
+        <div class="stat-card">Month<strong id="m-total">$0</strong></div>
+    </div>
+
+    <input type="text" id="title" placeholder="What did you buy?">
+    <input type="number" id="amount" placeholder="Amount">
+    <select id="category">
+        <option value="Food">🍔 Food</option>
+        <option value="Transport">🚗 Transport</option>
+        <option value="General">📦 General</option>
+    </select>
+    <input type="date" id="date">
+    <button onclick="saveExpense()">Add Expense</button>
+
+    <div id="history"></div>
+</div>
+
+<script>
+    let data = JSON.parse(localStorage.getItem('my_expenses')) || [];
+
+    function saveExpense() {
+        const entry = {
+            id: Date.now(),
+            title: document.getElementById('title').value,
+            amount: parseFloat(document.getElementById('amount').value),
+            category: document.getElementById('category').value,
+            date: document.getElementById('date').value
+        };
+
+        if(!entry.title || !entry.amount || !entry.date) return alert("Fill everything!");
+
+        data.push(entry);
+        localStorage.setItem('my_expenses', JSON.stringify(data));
+        updateUI();
+    }
+
+    function updateUI() {
+        const history = document.getElementById('history');
+        history.innerHTML = "";
+        let totals = { d:0, w:0, m:0 };
+        const now = new Date();
+
+        data.sort((a,b) => new Date(b.date) - new Date(a.date)).forEach(ex => {
+            const exDate = new Date(ex.date);
+            
+            // Calc logic
+            if(exDate.toDateString() === now.toDateString()) totals.d += ex.amount;
+            if((now - exDate) / (1000*60*60*24) <= 7) totals.w += ex.amount;
+            if(exDate.getMonth() === now.getMonth()) totals.m += ex.amount;
+
+            history.innerHTML += `
+                <div class="item">
+                    <div>
+                        <strong>${ex.title}</strong><br>
+                        <span class="category-tag">${ex.category}</span>
+                    </div>
+                    <span>$${ex.amount}</span>
+                </div>`;
+        });
+
+        document.getElementById('d-total').innerText = `$${totals.d}`;
+        document.getElementById('w-total').innerText = `$${totals.w}`;
+        document.getElementById('m-total').innerText = `$${totals.m}`;
+    }
+
+    // Set default date to today
+    document.getElementById('date').valueAsDate = new Date();
+    updateUI();
+</script>
+</body>
+</html>
