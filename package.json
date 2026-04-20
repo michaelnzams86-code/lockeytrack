@@ -1,12 +1,15 @@
 {
   "name": "finance-tracker",
   "version": "1.0.0",
-  "description": "Simple finance app",
+  "description": "Personal finance tracking app",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
   },
   "dependencies": {
     "express": "^4.18.2"
+  },
+  "engines": {
+    "node": ">=14.0.0"
   }
 }
